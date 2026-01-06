@@ -12,3 +12,8 @@ class ExpenseSerializer(serializers.ModelSerializer):
             'category',
             'date',
         ]
+
+    def validate_amount(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Amount must be greater than zero.")
+        return value
