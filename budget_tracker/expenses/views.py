@@ -1,20 +1,22 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import generics, permissions
 from .models import Expense
 from .serializers import ExpenseSerializer
 
-class ExpenseListCreateView(APIView):
-    permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        expenses = Expense.objects.filter(user=request.user)
-        serializer = ExpenseSerializer(expenses, many=True)
-        return Response(serializer.data)
+class ExpenseListCreateView(generics.ListCreateAPIView):
+    serializer_class = ExpenseSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request):
-        serializer = ExpenseSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user=request.user)
-            return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+    def get_queryset(self):
+        return Expense.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+
+class ExpenseDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = ExpenseSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Expense.objects.filter(user=self.request.user)
